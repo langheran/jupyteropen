@@ -8,16 +8,21 @@ Loop, %0%  ; For each parameter:
 	num = %A_Index%
 	args := args . param
 }
+if(args="")
+	args:=A_WorkingDir
 if(!FileExist(args))
 	ExitApp
-
 SplitPath, args, name, dir, ext, name_no_ext, drive
+FileGetAttrib, Attributes, %args%		
+if(InStr(Attributes, "D"))
+{
+	dir:=args
+}
 SetWorkingDir, %dir%
 OnExit, saveAndExit
-
-if(ext=="ipynb")
+if(ext=="ipynb" || InStr(Attributes, "D"))
 {
-	if(GetKeyState("Shift", "P"))
+	if(GetKeyState("Shift", "P") && ext=="ipynb")
 	{
 		export:=1
 		file:=dir . "\" . name_no_ext . ".pdf"
@@ -53,8 +58,10 @@ if(ext=="ipynb")
 		IniWrite, %root%, %A_ScriptDir%\JupyterOpen.ini, %dir%,root
 		IniWrite, %token%, %A_ScriptDir%\JupyterOpen.ini, %dir%,token
 	}
-	;Run, % root . "notebooks/" . name . "?" . token
-	url:=% root . "notebooks/" . name . "?" . token
+	if(ext=="ipynb")
+		url:=% root . "notebooks/" . name . "?" . token
+	else
+		url:=% root . "tree" . "?" . token
 	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --profile-directory=Default --app="%url%"
 	if(!iProcessId){
 		GoSub, saveAndExit
