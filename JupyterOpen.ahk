@@ -1,6 +1,9 @@
 ﻿#Persistent
 #SingleInstance off
 
+if(GetProcessCount()=1)
+	FileDelete, %A_ScriptDir%\JupyterOpen.ini
+
 args:=""
 Loop, %0%  ; For each parameter:
 {
@@ -95,6 +98,8 @@ if(iProcessId)
 	Process, Close, %iProcessId%
 	IniDelete, %A_ScriptDir%\JupyterOpen.ini, %dir%,root
 	IniDelete, %A_ScriptDir%\JupyterOpen.ini, %dir%,token
+	if(GetProcessCount()=1)
+		FileDelete, %A_ScriptDir%\JupyterOpen.ini
 }
 ExitApp
 	
@@ -204,4 +209,14 @@ SelectFile(file)
 		doc.SelectItem(items.item(name), 16)	
 		doc.SelectItem(items.item(name), 1)
 	}
+}
+
+GetProcessCount(){
+	count=0
+	for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process")
+	{
+		if process.Name = "JupyterOpen.exe"
+			count++
+	}
+	return count
 }
