@@ -43,7 +43,7 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 		if(!export)
 			GoSub, saveAndExit
 		
-		RunWait, jupyter nbconvert "%name%" --to pdf --template article
+		RunWait, jupyter nbconvert "%dir%/%name%" --to pdf --template "better-article.tplx", %A_ScriptDir%
 		
 		if(!FileExist(file))
 			msgbox, Error creating the file!
@@ -62,7 +62,15 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 		IniWrite, %token%, %A_ScriptDir%\JupyterOpen.ini, %dir%,token
 	}
 	if(ext=="ipynb")
+	{
 		url:=% root . "notebooks/" . name . "?" . token
+		IniRead, opened, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened, 0
+		openedStr:="=" . opened
+		if (!InStr(openedStr, "|" . name) && !InStr(openedStr, "=" . name)){
+			opened:=name . (opened<>"0" ? "|" . opened : "")
+			IniWrite, %opened%, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened
+		}
+	}
 	else
 		url:=% root . "tree" . "?" . token
 	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --profile-directory=Default --app="%url%"
@@ -71,14 +79,48 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 	}
 	else
 	{
+		SplitPath, dir , name2, dir2, ext2, name_no_ext2, drive2
 		Menu, Tray, Tip, %dir%
 		Menu, Tray, NoStandard
 		Menu, Tray, Add, &Exit, saveAndExit
 		Menu, Tray, add, &Open Browser, OpenRoot
 		Menu, Tray, add, &Open Folder, OpenFolder
+		Menu, Tray, Add
+		Menu, Tray, Add, %name2%, OpenFolder
+		Menu, Tray, Add
+		SetTimer, BuildMenu, 500
 	}
 }
+SetTimer, CheckAlive, 3000
+return
 
+BuildMenu:
+	IniRead, opened, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened, 0
+	if(opened<>"0" && opened<>oldOpenedMenu)
+	{
+		if(oldOpenedMenu)
+		{
+			count:=1
+			Loop,Parse,oldOpenedMenu,|
+			{
+				Menu, Tray, delete, & %count% %A_LoopField%, OpenRecentFile
+				count:=count+1
+			}
+		}
+		count:=1
+		Loop,Parse,opened,|
+		{
+			Menu, Tray, add, & %count% %A_LoopField%, OpenRecentFile
+			count:=count+1
+		}
+		oldOpenedMenu:=opened
+	}
+return
+
+OpenRecentFile:
+	recentFile:=LTrim(RTrim(SubStr(A_ThisMenuItem, 4)))
+	recentUrl:=% root . "notebooks/" . recentFile . "?" . token
+	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --profile-directory=Default --app="%recentUrl%"
 return
 
 OpenRoot:
@@ -92,12 +134,14 @@ OpenFolder:
 return
 
 saveAndExit:
+SetTimer, BuildMenu, Off
 if(iProcessId)
 {
 	KillChildProcesses(iProcessId)
 	Process, Close, %iProcessId%
 	IniDelete, %A_ScriptDir%\JupyterOpen.ini, %dir%,root
 	IniDelete, %A_ScriptDir%\JupyterOpen.ini, %dir%,token
+	IniDelete, %A_ScriptDir%\JupyterOpen.ini, %dir%,opened
 	if(GetProcessCount()=1)
 		FileDelete, %A_ScriptDir%\JupyterOpen.ini
 }
@@ -220,3 +264,17 @@ GetProcessCount(){
 	}
 	return count
 }
+
+CheckAlive:
+IniRead, opened, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened, 0
+count:=0
+Loop,Parse,opened,|
+{
+	DetectHiddenWindows, On
+	chromeTitle:=StrReplace(A_LoopField, ".ipynb" , "")
+	if(WinExist(chromeTitle . " ahk_exe chrome.exe") || WinExist("Jupyter Notebook ahk_exe chrome.exe"))
+		count:=count+1
+}
+if(!count)
+	GoSub, saveAndExit
+return
