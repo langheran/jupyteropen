@@ -1,6 +1,9 @@
 ﻿#Persistent
 #SingleInstance off
 
+jupyter_nbconvert_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-nbconvert.exe"""
+jupyter_notebook_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-notebook.exe"""
+
 if(GetProcessCount()=1)
 	FileDelete, %A_ScriptDir%\JupyterOpen.ini
 
@@ -43,8 +46,7 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 		if(!export)
 			GoSub, saveAndExit
 		
-		RunWait, jupyter nbconvert "%dir%/%name%" --to pdf --template "better-article.tplx", %A_ScriptDir%
-		
+		RunWait, %jupyter_nbconvert_path% "%dir%/%name%" --to pdf --template "better-article.tplx", %A_ScriptDir%
 		if(!FileExist(file))
 			msgbox, Error creating the file!
 		else
@@ -53,9 +55,9 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 	}
 	IniRead, root, %A_ScriptDir%\JupyterOpen.ini, %dir%,root,0
 	IniRead, token, %A_ScriptDir%\JupyterOpen.ini, %dir%,token,0
-	if(root=0)
+	if(root=0 || root="")
 	{
-		url:=StdoutToVar_CreateProcess("jupyter notebook --no-browser", "http.*$")
+		url:=StdoutToVar_CreateProcess(jupyter_notebook_path . " --no-browser", "http.*$")
 		RegExMatch(url, "http.*localhost.*?/", root)
 		RegExMatch(url, "token\=.*", token)
 		IniWrite, %root%, %A_ScriptDir%\JupyterOpen.ini, %dir%,root
@@ -73,7 +75,7 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 	}
 	else
 		url:=% root . "tree" . "?" . token
-	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --profile-directory=Default --app="%url%"
+	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --profile-directory=Default --app="%url%"
 	if(!iProcessId){
 		GoSub, saveAndExit
 	}
@@ -91,7 +93,7 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 		SetTimer, BuildMenu, 500
 	}
 }
-SetTimer, CheckAlive, 3000
+SetTimer, CheckAlive, 10000
 return
 
 BuildMenu:
@@ -103,7 +105,7 @@ BuildMenu:
 			count:=1
 			Loop,Parse,oldOpenedMenu,|
 			{
-				Menu, Tray, delete, & %count% %A_LoopField%, OpenRecentFile
+				Menu, Tray, delete, & %count% %A_LoopField%
 				count:=count+1
 			}
 		}
@@ -120,13 +122,13 @@ return
 OpenRecentFile:
 	recentFile:=LTrim(RTrim(SubStr(A_ThisMenuItem, 4)))
 	recentUrl:=% root . "notebooks/" . recentFile . "?" . token
-	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --profile-directory=Default --app="%recentUrl%"
+	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --profile-directory=Default --app="%recentUrl%"
 return
 
 OpenRoot:
 	;Run, % root . "tree"
 	url:=% root . "tree"
-	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --profile-directory=Default --app="%url%"
+	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --profile-directory=Default --app="%url%"
 return
 
 OpenFolder:
@@ -266,13 +268,19 @@ GetProcessCount(){
 }
 
 CheckAlive:
+if(!chromeInstance1)
+	chromeInstance1:=WinExist("Home ahk_exe chrome.exe")
+if(!chromeInstance2)
+	chromeInstance2:=WinExist("Jupyter Notebook ahk_exe chrome.exe")
+if(!chromeInstance3)
+	chromeInstance3:=WinExist(chromeTitle . " ahk_exe chrome.exe")
 IniRead, opened, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened, 0
 count:=0
 Loop,Parse,opened,|
 {
 	DetectHiddenWindows, On
 	chromeTitle:=StrReplace(A_LoopField, ".ipynb" , "")
-	if(WinExist(chromeTitle . " ahk_exe chrome.exe") || WinExist("Jupyter Notebook ahk_exe chrome.exe"))
+	if(WinExist("ahk_id " . chromeInstance1) || WinExist("ahk_id " . chromeInstance2) || WinExist("ahk_id " . chromeInstance3))
 		count:=count+1
 }
 if(!count)
