@@ -1,8 +1,13 @@
 ﻿#Persistent
 #SingleInstance off
 
+shiftPressed:=GetKeyState("Shift", "P")
+controlPressed:=GetKeyState("Control", "P")
+
 jupyter_nbconvert_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-nbconvert.exe"""
-jupyter_notebook_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-notebook.exe"""
+jupyter_notebook_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-notebook.exe""  --no-browser"
+;command="C:\Windows\System32\bash.exe" -ilc "source activate xeus; jupyter notebook"
+;jupyter_notebook_path=%comspec% /k "%command%"
 
 if(GetProcessCount()=1)
 	FileDelete, %A_ScriptDir%\JupyterOpen.ini
@@ -28,7 +33,7 @@ SetWorkingDir, %dir%
 OnExit, saveAndExit
 if(ext=="ipynb" || InStr(Attributes, "D"))
 {
-	if(GetKeyState("Shift", "P") && ext=="ipynb")
+	if(shiftPressed && ext=="ipynb")
 	{
 		export:=1
 		file:=dir . "\" . name_no_ext . ".pdf"
@@ -57,7 +62,7 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 	IniRead, token, %A_ScriptDir%\JupyterOpen.ini, %dir%,token,0
 	if(root=0 || root="")
 	{
-		url:=StdoutToVar_CreateProcess(jupyter_notebook_path . " --no-browser", "http.*$")
+		url:=StdoutToVar_CreateProcess(jupyter_notebook_path, "http.*$")
 		RegExMatch(url, "http.*localhost.*?/", root)
 		RegExMatch(url, "token\=.*", token)
 		IniWrite, %root%, %A_ScriptDir%\JupyterOpen.ini, %dir%,root
