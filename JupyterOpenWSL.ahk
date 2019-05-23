@@ -28,6 +28,7 @@ Menu, Tray, NoStandard
 Menu, Tray, Add, &Exit, saveAndExit
 Menu, Tray, add, &Open Browser, OpenRoot
 Menu, Tray, add, &Open Folder, OpenFolder
+Menu, Tray, add, &Toggle Console, ToggleConsole
 root:="http://localhost:8888/"
 url:=% root . "notebooks/" . name
 Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --profile-directory=Default --app="%url%",,OutputVarPID
@@ -41,6 +42,15 @@ return
 
 OpenFolder:
 	Run, % dir
+return
+
+ToggleConsole:
+	DetectHiddenWindows, Off
+	IfWinExist, %processTitle%
+		WinHide %processTitle%
+	else
+		WinShow %processTitle%
+	DetectHiddenWindows, On
 return
 
 saveAndExit:
