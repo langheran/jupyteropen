@@ -185,7 +185,7 @@ StdoutToVar_CreateProcess(sCmd, searchString="", sEncoding:="CP0", sDir:="", ByR
         VarSetCapacity(sTemp, nTot+1)
         DllCall( "ReadFile", Ptr,hStdOutRd, Ptr,&sTemp, UInt,nTot, PtrP,nSize, Ptr,0 )
         sOutput .= StrGet(&sTemp, nSize, sEncoding)
-		if(searchString<>"" && RegExMatch(sOutput, searchString, match))
+		if(searchString<>"" && RegExMatch(sOutput, "`am)" . searchString, match))
 		{
 			sOutput:=match
 			break
