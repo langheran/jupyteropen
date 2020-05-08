@@ -4,8 +4,10 @@
 shiftPressed:=GetKeyState("Shift", "P")
 controlPressed:=GetKeyState("Control", "P")
 
-jupyter_nbconvert_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-nbconvert.exe"""
-jupyter_notebook_path:="""C:\Users\langh\Miniconda3\Scripts\jupyter-notebook.exe""  --no-browser"
+conda_path:="C:\ProgramData\Miniconda3"
+
+jupyter_nbconvert_path:="""" conda_path "\Scripts\jupyter-nbconvert.exe"""
+jupyter_notebook_path:="""" conda_path "\Scripts\jupyter-notebook.exe""  --no-browser"
 ;command="C:\Windows\System32\bash.exe" -ilc "source activate xeus; jupyter notebook"
 ;jupyter_notebook_path=%comspec% /k "%command%"
 
