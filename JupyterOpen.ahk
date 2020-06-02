@@ -82,7 +82,8 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 	}
 	else
 		url:=% root . "tree" . "?" . token
-	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --profile-directory=Default --app="%url%"
+	Run, C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --profile-directory=Default --app="%url%",,, ChromePID
+	GroupAdd, JupyterGroup, ahk_pid %ChromePID%
 	if(!iProcessId){
 		GoSub, saveAndExit
 	}
@@ -100,8 +101,14 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 		SetTimer, BuildMenu, 500
 	}
 }
-SetTimer, CheckAlive, 10000
+SetTimer, CheckAlive, 20000
 return
+
+#IfWinActive ahk_group JupyterGroup
+#a::
+GoSub, OpenFolder
+return
+#If
 
 BuildMenu:
 	IniRead, opened, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened, 0
@@ -287,6 +294,11 @@ Loop,Parse,opened,|
 {
 	DetectHiddenWindows, On
 	chromeTitle:=StrReplace(A_LoopField, ".ipynb" , "")
+	if(WinExist("ahk_id " . chromeInstance3) && !instanceAdded)
+	{
+		GroupAdd, JupyterGroup, ahk_id %chromeInstance3%
+		instanceAdded:=1
+	}
 	if(WinExist("ahk_id " . chromeInstance1) || WinExist("ahk_id " . chromeInstance2) || WinExist("ahk_id " . chromeInstance3))
 		count:=count+1
 }
