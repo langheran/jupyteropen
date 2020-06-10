@@ -3,6 +3,8 @@ REM pip install octave_kernel
 REM pip install ipywidgets
 REM dotnet tool install -g dotnet-try
 REM dotnet try jupyter install
+REM dotnet tool install --global Microsoft.dotnet-interactive
+REM dotnet-interactive jupyter install
 REM dotnet tool install  --version 2.1.3
 REM jupyter nbextension enable --py widgetsnbextension 
 REM pip install jupyter_contrib_nbextensions && jupyter contrib nbextension install
