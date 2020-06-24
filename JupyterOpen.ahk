@@ -101,7 +101,7 @@ if(ext=="ipynb" || InStr(Attributes, "D"))
 		SetTimer, BuildMenu, 500
 	}
 }
-SetTimer, CheckAlive, 20000
+SetTimer, CheckAlive, 60000
 return
 
 #IfWinActive ahk_group JupyterGroup
