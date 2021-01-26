@@ -286,18 +286,16 @@ if(!chromeInstance1)
 	chromeInstance1:=WinExist("Home ahk_exe chrome.exe")
 if(!chromeInstance2)
 	chromeInstance2:=WinExist("Jupyter Notebook ahk_exe chrome.exe")
-if(!chromeInstance3)
-	chromeInstance3:=WinExist(chromeTitle . " ahk_exe chrome.exe")
 IniRead, opened, %A_ScriptDir%\JupyterOpen.ini, %dir%, opened, 0
 count:=0
 Loop,Parse,opened,|
 {
 	DetectHiddenWindows, On
 	chromeTitle:=StrReplace(A_LoopField, ".ipynb" , "")
-	if(WinExist("ahk_id " . chromeInstance3) && !instanceAdded)
+	chromeInstance3:=WinExist(chromeTitle . " ahk_exe chrome.exe")
+	if(WinExist("ahk_id " . chromeInstance3))
 	{
 		GroupAdd, JupyterGroup, ahk_id %chromeInstance3%
-		instanceAdded:=1
 	}
 	if(WinExist("ahk_id " . chromeInstance1) || WinExist("ahk_id " . chromeInstance2) || WinExist("ahk_id " . chromeInstance3))
 		count:=count+1
